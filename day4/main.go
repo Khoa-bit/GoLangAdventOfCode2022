@@ -3,7 +3,6 @@ package main
 import (
 	_ "embed"
 	"fmt"
-	"regexp"
 	"strconv"
 	"strings"
 )
@@ -11,142 +10,87 @@ import (
 //go:embed input.txt
 var input string
 
-func part1(input string) string {
-	stacks := [][]rune{
-		{'W', 'R', 'T', 'G'},
-		{'W', 'V', 'S', 'M', 'P', 'H', 'C', 'G'},
-		{'M', 'G', 'S', 'T', 'L', 'C'},
-		{'F', 'R', 'W', 'M', 'D', 'H', 'J'},
-		{'J', 'F', 'W', 'S', 'H', 'L', 'Q', 'P'},
-		{'S', 'M', 'F', 'N', 'D', 'J', 'P'},
-		{'J', 'S', 'C', 'G', 'F', 'D', 'B', 'Z'},
-		{'B', 'T', 'R'},
-		{'C', 'L', 'W', 'N', 'H'},
+func getRange(elf string) ([]int, error) {
+	elfStrRange := strings.Split(elf, "-")
+
+	lower, err := strconv.Atoi(elfStrRange[0])
+	if err != nil {
+		return nil, err
 	}
 
-	// Reverse stack
-	for _, stack := range stacks {
-		start := 0
-		end := len(stack) - 1
-		for start < end {
-			stack[start], stack[end] = stack[end], stack[start]
-			start++
-			end--
-		}
+	upper, err := strconv.Atoi(elfStrRange[1])
+	if err != nil {
+		return nil, err
 	}
 
-	trim_input := strings.Trim(input, "\r\n")
-
-	steps := strings.Split(trim_input, "\n")
-
-	re := regexp.MustCompile(`\d+`)
-	for _, step := range steps {
-		stepValue := re.FindAllString(step, 3)
-		amount, err := strconv.Atoi(stepValue[0])
-		if err != nil {
-			fmt.Println(err)
-			return ""
-		}
-		from, err := strconv.Atoi(stepValue[1])
-		if err != nil {
-			fmt.Println(err)
-			return ""
-		}
-		to, err := strconv.Atoi(stepValue[2])
-		if err != nil {
-			fmt.Println(err)
-			return ""
-		}
-
-		from--
-		to--
-
-		for i := 0; i < amount; i++ {
-			// pop from stackFrom and append to stackTo
-			stacks[to] = append(stacks[to], stacks[from][len(stacks[from])-1])
-			stacks[from] = stacks[from][:len(stacks[from])-1]
-		}
-	}
-
-	result := ""
-	for _, stack := range stacks {
-		result += fmt.Sprint(string(stack[len(stack)-1]))
-	}
-
-	return result
+	return []int{lower, upper}, nil
 }
 
-func part2(input string) string {
-	stacks := [][]rune{
-		{'W', 'R', 'T', 'G'},
-		{'W', 'V', 'S', 'M', 'P', 'H', 'C', 'G'},
-		{'M', 'G', 'S', 'T', 'L', 'C'},
-		{'F', 'R', 'W', 'M', 'D', 'H', 'J'},
-		{'J', 'F', 'W', 'S', 'H', 'L', 'Q', 'P'},
-		{'S', 'M', 'F', 'N', 'D', 'J', 'P'},
-		{'J', 'S', 'C', 'G', 'F', 'D', 'B', 'Z'},
-		{'B', 'T', 'R'},
-		{'C', 'L', 'W', 'N', 'H'},
-	}
+func part1(input string) (int, error) {
+	trimInput := strings.Trim(input, "\r\n")
 
-	// Reverse stack
-	for _, stack := range stacks {
-		start := 0
-		end := len(stack) - 1
-		for start < end {
-			stack[start], stack[end] = stack[end], stack[start]
-			start++
-			end--
-		}
-	}
-
-	trim_input := strings.Trim(input, "\r\n")
-
-	steps := strings.Split(trim_input, "\n")
-
-	re := regexp.MustCompile(`\d+`)
-	for _, step := range steps {
-		stepValue := re.FindAllString(step, 3)
-		amount, err := strconv.Atoi(stepValue[0])
+	fullCount := 0
+	pairs := strings.Split(trimInput, "\r\n")
+	for _, pair := range pairs {
+		elfs := strings.Split(pair, ",")
+		elf1, err := getRange(elfs[0])
 		if err != nil {
-			fmt.Println(err)
-			return ""
+			return -1, err
 		}
-		from, err := strconv.Atoi(stepValue[1])
+
+		elf2, err := getRange(elfs[1])
 		if err != nil {
-			fmt.Println(err)
-			return ""
-		}
-		to, err := strconv.Atoi(stepValue[2])
-		if err != nil {
-			fmt.Println(err)
-			return ""
+			return -1, err
 		}
 
-		from--
-		to--
-
-		for i := 0; i < amount; i++ {
-			// pop from stackFrom and append to stackTo
-			stacks[to] = append(stacks[to], stacks[from][len(stacks[from])-(amount-i)])
+		if (elf1[0] <= elf2[0] && elf1[1] >= elf2[1]) || (elf2[0] <= elf1[0] && elf2[1] >= elf1[1]) {
+			fullCount += 1
 		}
-
-		stacks[from] = stacks[from][:len(stacks[from])-amount]
-
 	}
 
-	result := ""
-	for _, stack := range stacks {
-		result += fmt.Sprint(string(stack[len(stack)-1]))
+	return fullCount, nil
+}
+
+func part2(input string) (int, error) {
+	trimInput := strings.Trim(input, "\r\n")
+
+	fullCount := 0
+	pairs := strings.Split(trimInput, "\r\n")
+	for _, pair := range pairs {
+		elfs := strings.Split(pair, ",")
+		elf1, err := getRange(elfs[0])
+		if err != nil {
+			return -1, err
+		}
+
+		elf2, err := getRange(elfs[1])
+		if err != nil {
+			return -1, err
+		}
+
+		if elf2[1] < elf1[0] || elf1[1] < elf2[0] {
+			continue
+		}
+		fullCount += 1
 	}
 
-	return result
+	return fullCount, nil
 }
 
 func main() {
-	result1 := part1(input)
-	result2 := part2(input)
+	result1, err := part1(input)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	fmt.Println(result1)
+
+	result2, err := part2(input)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	fmt.Println(result2)
 }

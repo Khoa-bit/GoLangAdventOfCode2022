@@ -11,15 +11,11 @@ import (
 var input string
 
 type TreeView struct {
-	height   int
-	left     int
-	right    int
-	top      int
-	bottom   int
-	leftEq   int
-	rightEq  int
-	topEq    int
-	bottomEq int
+	height int
+	left   int
+	right  int
+	top    int
+	bottom int
 }
 
 func part1(input string) int {
@@ -113,9 +109,9 @@ func part1(input string) int {
 }
 
 func part2(input string) int {
-	trim_input := strings.Trim(input, "\r\n")
+	trim_input := strings.Trim(input, "\n")
 
-	strRows := strings.Split(trim_input, "\r\n")
+	strRows := strings.Split(trim_input, "\n")
 
 	rowsCount := len(strRows)
 	colsCount := len(strRows[0])
@@ -154,44 +150,24 @@ func part2(input string) int {
 
 		// Go from left, skip grid border (index 0)
 		// While keep track of the tallest tree
-		prevLeft := &resultGrid[rowIndex][0]
-		for left := 1; left < len(row)-1; left++ {
+		cacheLeft := make([]int, 10)
+		for left := 0; left < len(row)-1; left++ {
 			curLeft := &resultGrid[rowIndex][left]
 
-			if prevLeft.height <= curLeft.height {
-				curLeft.leftEq = prevLeft.leftEq + 1
-			} else {
-				curLeft.leftEq = 1
-			}
+			curLeft.left = left - cacheLeft[curLeft.height]
 
-			if prevLeft.height < curLeft.height {
-				curLeft.left = curLeft.leftEq
-			} else {
-				curLeft.left = 1
-			}
-
-			prevLeft = curLeft
+			updateBlockedTreeCache(&cacheLeft, curLeft.height, left)
 		}
 
 		// Go from right, skip grid border (index len - 1)
 		// While keep track of the tallest tree
-		prevRight := &resultGrid[rowIndex][len(grid[0])-1]
-		for right := len(grid[0]) - 2; right > 0; right-- {
+		cacheRight := []int{colsCount - 1, colsCount - 1, colsCount - 1, colsCount - 1, colsCount - 1, colsCount - 1, colsCount - 1, colsCount - 1, colsCount - 1, colsCount - 1}
+		for right := len(grid[0]) - 1; right > 0; right-- {
 			curRight := &resultGrid[rowIndex][right]
 
-			if prevRight.height <= curRight.height {
-				curRight.rightEq = prevRight.rightEq + 1
-			} else {
-				curRight.rightEq = 1
-			}
+			curRight.right = cacheRight[curRight.height] - right
 
-			if prevRight.height < curRight.height {
-				curRight.right = curRight.rightEq
-			} else {
-				curRight.right = 1
-			}
-
-			prevRight = curRight
+			updateBlockedTreeCache(&cacheRight, curRight.height, right)
 		}
 	}
 
@@ -199,32 +175,24 @@ func part2(input string) int {
 	for colIndex := 1; colIndex < len(grid[0])-1; colIndex++ {
 		// Go from top, skip grid border (index 0)
 		// While keep track of the tallest tree
-		prevTop := &resultGrid[0][colIndex]
-		for top := 1; top < len(grid)-1; top++ {
+		cacheTop := make([]int, 10)
+		for top := 0; top < len(grid)-1; top++ {
 			curTop := &resultGrid[top][colIndex]
 
-			if prevTop.height < curTop.height {
-				curTop.top = prevTop.top + 1
-			} else {
-				curTop.top = 1
-			}
+			curTop.top = top - cacheTop[curTop.height]
 
-			prevTop = curTop
+			updateBlockedTreeCache(&cacheTop, curTop.height, top)
 		}
 
 		// Go from bottom, skip grid border (index len - 1)
 		// While keep track of the tallest tree
-		prevBottom := &resultGrid[len(grid)-1][colIndex]
+		cacheBottom := []int{rowsCount - 1, rowsCount - 1, rowsCount - 1, rowsCount - 1, rowsCount - 1, rowsCount - 1, rowsCount - 1, rowsCount - 1, rowsCount - 1, rowsCount - 1}
 		for bottom := len(grid) - 2; bottom > 0; bottom-- {
 			curBottom := &resultGrid[bottom][colIndex]
 
-			if prevBottom.height < curBottom.height {
-				curBottom.bottom = prevBottom.bottom + 1
-			} else {
-				curBottom.bottom = 1
-			}
+			curBottom.bottom = cacheBottom[curBottom.height] - bottom
 
-			prevBottom = curBottom
+			updateBlockedTreeCache(&cacheBottom, curBottom.height, bottom)
 		}
 	}
 
@@ -242,6 +210,14 @@ func part2(input string) int {
 
 	fmt.Println("Location: " + highestScenicLocation)
 	return highestScenicScore
+}
+
+func updateBlockedTreeCache(cache *[]int, height int, position int) *[]int {
+	for h := 0; h <= height; h++ {
+		(*cache)[h] = position
+	}
+
+	return cache
 }
 
 func main() {
